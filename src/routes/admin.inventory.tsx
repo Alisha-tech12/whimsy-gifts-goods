@@ -143,12 +143,6 @@ function ProductEditor({
           <div>
             <Label>Custom options (JSON)</Label>
             <Textarea value={form.custom_options} onChange={(e) => setForm({ ...form, custom_options: e.target.value })} rows={10} className="font-mono text-xs" />
-            <p className="text-xs text-muted-foreground mt-1">
-              Schema: <code>{`{ sizes:[{name,price}] or ["S","M"], designs:[{name,sample_image}], colors:[{name,sample_image}], themes:[{name,sample_image}], addons:[], engravable:bool, requires_upload:bool, multi_upload:bool, max_uploads:number, note:bool }`}</code>
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Tip: sizes can be priced — e.g. <code>{`"sizes":[{"name":"4x6","price":12.99},{"name":"5x7","price":18.99}]`}</code>. For magazines, set <code>multi_upload:true</code>.
-            </p>
           </div>
         </div>
         <DialogFooter>

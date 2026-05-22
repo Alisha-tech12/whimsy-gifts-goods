@@ -193,7 +193,7 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
                 className={`rounded-xl overflow-hidden border-2 transition ${design?.name === d.name ? "border-primary shadow-lg" : "border-transparent hover:border-border"}`}
               >
                 <img src={d.sample_image} alt={d.name} className="w-full h-20 object-cover" />
-                <div className="text-xs py-1.5 font-medium">{d.name}</div>
+                <div className="text-xs py-1.5 font-medium">{d.name}{d.price ? ` +$${d.price.toFixed(2)}` : ""}</div>
               </button>
             ))}
           </div>
@@ -212,7 +212,7 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
                 className={`rounded-xl overflow-hidden border-2 transition ${color?.name === c.name ? "border-primary shadow-lg" : "border-transparent hover:border-border"}`}
               >
                 <img src={c.sample_image} alt={c.name} className="w-full h-20 object-cover" />
-                <div className="text-xs py-1.5 font-medium">{c.name}</div>
+                <div className="text-xs py-1.5 font-medium">{c.name}{c.price ? ` +$${c.price.toFixed(2)}` : ""}</div>
               </button>
             ))}
           </div>

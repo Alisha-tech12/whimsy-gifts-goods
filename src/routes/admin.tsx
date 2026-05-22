@@ -65,12 +65,49 @@ function AdminLogin() {
     }
   }
 
+  async function signInWithGoogle() {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/admin",
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) {
+        // Browser is redirecting to Google — nothing more to do
+        return;
+      }
+      toast.success("Welcome back!");
+      nav({ to: "/admin" });
+    } catch (e: any) {
+      toast.error(e.message ?? "Google sign-in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="max-w-md mx-auto py-20 px-4">
       <div className="whimsy-card p-6">
         <h1 className="text-2xl font-display font-bold">Admin {mode === "signup" ? "Sign Up" : "Sign In"}</h1>
         <p className="text-sm text-muted-foreground mt-1">Access to the Secret Garden 🌿</p>
         <div className="space-y-3 mt-4">
+          <Button
+            variant="outline"
+            onClick={signInWithGoogle}
+            disabled={busy}
+            className="w-full gap-2"
+          >
+            <Chrome className="w-4 h-4" />
+            Sign in with Google
+          </Button>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
+            </div>
+          </div>
           <div><Label>Email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" /></div>
           <div><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5" /></div>
           <Button onClick={submit} disabled={busy} className="btn-gold w-full">{busy ? "…" : mode === "signup" ? "Create account" : "Sign in"}</Button>

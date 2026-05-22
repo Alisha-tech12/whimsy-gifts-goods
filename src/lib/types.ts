@@ -1,13 +1,15 @@
-export type OptionWithImage = { name: string; sample_image?: string };
+export type OptionWithImage = { name: string; sample_image?: string; price?: number };
 
 export type SizeOption = string | { name: string; price?: number };
+
+export type AddonOption = string | { name: string; price?: number };
 
 export type CustomOptions = {
   sizes?: SizeOption[];
   designs?: OptionWithImage[];
   colors?: OptionWithImage[];
   themes?: OptionWithImage[];
-  addons?: string[];
+  addons?: AddonOption[];
   engravable?: boolean;
   requires_upload?: boolean;
   multi_upload?: boolean;
@@ -21,6 +23,12 @@ export function sizeName(s: SizeOption): string {
 export function sizePrice(s: SizeOption | null | undefined): number | undefined {
   if (!s || typeof s === "string") return undefined;
   return s.price;
+}
+export function addonName(a: AddonOption): string {
+  return typeof a === "string" ? a : a.name;
+}
+export function addonPrice(a: AddonOption): number {
+  return typeof a === "string" ? 0 : a.price ?? 0;
 }
 
 export type Product = {

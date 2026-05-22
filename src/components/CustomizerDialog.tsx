@@ -10,8 +10,8 @@ import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart-store";
-import type { Product, OptionWithImage, SizeOption } from "@/lib/types";
-import { sizeName, sizePrice } from "@/lib/types";
+import type { Product, OptionWithImage, SizeOption, AddonOption } from "@/lib/types";
+import { sizeName, sizePrice, addonName, addonPrice } from "@/lib/types";
 
 export function CustomizerDialog({
   product,
@@ -59,8 +59,17 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
 
   const unitPrice = useMemo(() => {
     const sp = sizePrice(selectedSize);
-    return sp !== undefined ? sp : product.base_price;
-  }, [selectedSize, product.base_price]);
+    let p = sp !== undefined ? sp : product.base_price;
+    p += design?.price ?? 0;
+    p += color?.price ?? 0;
+    p += theme?.price ?? 0;
+    if (opts.addons) {
+      for (const a of opts.addons) {
+        if (addons.includes(addonName(a))) p += addonPrice(a);
+      }
+    }
+    return p;
+  }, [selectedSize, product.base_price, design, color, theme, addons, opts.addons]);
 
   async function handleUpload(files: FileList) {
     setUploading(true);
@@ -233,17 +242,22 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
         <div>
           <Label>Add-ons</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            {opts.addons.map((a) => (
-              <label key={a} className="flex items-center gap-2 p-2 rounded-lg bg-muted/60 cursor-pointer">
-                <Checkbox
-                  checked={addons.includes(a)}
-                  onCheckedChange={(v) =>
-                    setAddons((prev) => (v ? [...prev, a] : prev.filter((x) => x !== a)))
-                  }
-                />
-                <span className="text-sm">{a}</span>
-              </label>
-            ))}
+            {opts.addons.map((a) => {
+              const n = addonName(a);
+              const pr = addonPrice(a);
+              return (
+                <label key={n} className="flex items-center gap-2 p-2 rounded-lg bg-muted/60 cursor-pointer">
+                  <Checkbox
+                    checked={addons.includes(n)}
+                    onCheckedChange={(v) =>
+                      setAddons((prev) => (v ? [...prev, n] : prev.filter((x) => x !== n)))
+                    }
+                  />
+                  <span className="text-sm flex-1">{n}</span>
+                  {pr > 0 && <span className="text-xs text-muted-foreground">+${pr.toFixed(2)}</span>}
+                </label>
+              );
+            })}
           </div>
         </div>
       )}

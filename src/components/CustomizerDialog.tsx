@@ -231,7 +231,7 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
                 className={`rounded-xl overflow-hidden border-2 transition ${theme?.name === t.name ? "border-primary shadow-lg" : "border-transparent hover:border-border"}`}
               >
                 <img src={t.sample_image} alt={t.name} className="w-full h-20 object-cover" />
-                <div className="text-xs py-1.5 font-medium">{t.name}</div>
+                <div className="text-xs py-1.5 font-medium">{t.name}{t.price ? ` +$${t.price.toFixed(2)}` : ""}</div>
               </button>
             ))}
           </div>

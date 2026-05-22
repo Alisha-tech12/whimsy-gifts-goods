@@ -67,9 +67,27 @@ function Checkout() {
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
       if (itemsErr) throw itemsErr;
 
+      sessionStorage.setItem(
+        "whimsycraft-last-order",
+        JSON.stringify({
+          orderId: order.id,
+          customerName: form.name,
+          email: form.email,
+          total: total(),
+          placedAt: new Date().toISOString(),
+          items: items.map((i) => ({
+            productName: i.productName,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+            customization: i.customization,
+            uploadedImagePath: i.uploadedImagePath ?? null,
+          })),
+        }),
+      );
+
       clear();
       toast.success("Order placed successfully! 🌸");
-      navigate({ to: "/" });
+      navigate({ to: "/order-confirmation" });
     } catch (e: any) {
       toast.error(e.message ?? "Failed to place order");
     } finally {

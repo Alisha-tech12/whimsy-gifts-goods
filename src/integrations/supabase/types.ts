@@ -78,6 +78,7 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_email: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -91,6 +92,7 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_email: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -104,6 +106,7 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_email?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -172,17 +175,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      lookup_order: {
-        Args: { p_email: string; p_order_id: string }
-        Returns: Json
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "customer"

@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { Package, Truck, CheckCircle2, Printer, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { lookupOrder } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/track-order")({
   head: () => ({ meta: [
@@ -20,7 +21,7 @@ type OrderItem = {
   quantity: number;
   unit_price: number;
   customization_details: Record<string, any>;
-  uploaded_image_path?: string | null;
+  uploaded_image_url?: string | null;
 };
 
 type OrderLookup = {
@@ -56,6 +57,7 @@ function TrackOrderPage() {
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<OrderLookup | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const lookup = useServerFn(lookupOrder);
 
   async function handleLookup(e: React.FormEvent) {
     e.preventDefault();
@@ -63,11 +65,7 @@ function TrackOrderPage() {
     setNotFound(false);
     setOrder(null);
     try {
-      const { data, error } = await supabase.rpc("lookup_order", {
-        p_order_id: orderId.trim(),
-        p_email: email.trim(),
-      });
-      if (error) throw error;
+      const data = await lookup({ data: { orderId: orderId.trim(), email: email.trim() } });
       if (!data) {
         setNotFound(true);
       } else {

@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart-store";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { z } from "zod";
+import { placeOrder } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout · WhimsyCraft" }] }),
@@ -27,8 +28,9 @@ function Checkout() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", phone: "", address: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
+  const submitOrder = useServerFn(placeOrder);
 
-  async function placeOrder() {
+  async function placeOrderHandler() {
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -40,48 +42,32 @@ function Checkout() {
     }
     setSubmitting(true);
     try {
-      const { data: order, error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          user_email: form.email,
-          customer_name: form.name,
-          phone: form.phone,
-          shipping_address: form.address,
-          notes: form.notes,
-          total_amount: total(),
-          status: "Pending",
-        })
-        .select()
-        .single();
-      if (orderErr) throw orderErr;
-
-      const orderItems = items.map((i) => ({
-        order_id: order.id,
-        product_id: i.productId,
-        product_name: i.productName,
-        quantity: i.quantity,
-        unit_price: i.unitPrice,
-        customization_details: i.customization,
-        uploaded_image_path: i.uploadedImagePath ?? null,
-      }));
-      const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
-      if (itemsErr) throw itemsErr;
-
-      sessionStorage.setItem(
-        "whimsycraft-last-order",
-        JSON.stringify({
-          orderId: order.id,
-          customerName: form.name,
+      const result = await submitOrder({
+        data: {
+          name: form.name,
           email: form.email,
-          total: total(),
-          placedAt: new Date().toISOString(),
+          phone: form.phone,
+          address: form.address,
+          notes: form.notes,
           items: items.map((i) => ({
+            productId: i.productId,
             productName: i.productName,
             quantity: i.quantity,
             unitPrice: i.unitPrice,
             customization: i.customization,
             uploadedImagePath: i.uploadedImagePath ?? null,
           })),
+        },
+      });
+
+      sessionStorage.setItem(
+        "whimsycraft-last-order",
+        JSON.stringify({
+          orderId: result.orderId,
+          customerName: form.name,
+          email: form.email,
+          total: total(),
+          placedAt: new Date().toISOString(),
         }),
       );
 
@@ -137,7 +123,7 @@ function Checkout() {
             <span>Total</span>
             <span>${total().toFixed(2)}</span>
           </div>
-          <Button onClick={placeOrder} disabled={submitting} className="btn-gold w-full mt-5">
+          <Button onClick={placeOrderHandler} disabled={submitting} className="btn-gold w-full mt-5">
             {submitting ? "Placing…" : "Place Order"}
           </Button>
         </div>

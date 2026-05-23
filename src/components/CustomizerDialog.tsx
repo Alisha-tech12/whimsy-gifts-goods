@@ -8,10 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useMemo } from "react";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { useCart } from "@/lib/cart-store";
 import type { Product, OptionWithImage, SizeOption, AddonOption } from "@/lib/types";
 import { sizeName, sizePrice, addonName, addonPrice } from "@/lib/types";
+import { uploadCustomerImage } from "@/lib/uploads.functions";
 
 export function CustomizerDialog({
   product,
@@ -52,8 +53,11 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
   const [note, setNote] = useState("");
   const [engraving, setEngraving] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+  // previews are local object URLs for live preview only; paths are storage keys persisted to the order
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [uploadedPaths, setUploadedPaths] = useState<string[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const uploadFn = useServerFn(uploadCustomerImage);
 
   const add = useCart((s) => s.add);
 

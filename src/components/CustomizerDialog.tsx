@@ -78,26 +78,26 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
   async function handleUpload(files: FileList) {
     setUploading(true);
     try {
-      const remaining = maxUploads - uploadedUrls.length;
+      const remaining = maxUploads - uploadedPaths.length;
       const toUpload = Array.from(files).slice(0, remaining);
       if (toUpload.length === 0) {
         toast.error(`Maximum ${maxUploads} photos allowed`);
         return;
       }
-      const urls: string[] = [];
+      const newPaths: string[] = [];
+      const newPreviews: string[] = [];
       for (const file of toUpload) {
-        const ext = file.name.split(".").pop();
-        const name = `${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from("customer_uploads").upload(name, file, {
-          cacheControl: "3600",
-          upsert: false,
+        const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+        const base64 = await fileToBase64(file);
+        const { path } = await uploadFn({
+          data: { base64, contentType: file.type || "image/jpeg", ext },
         });
-        if (error) throw error;
-        const { data } = supabase.storage.from("customer_uploads").getPublicUrl(name);
-        urls.push(data.publicUrl);
+        newPaths.push(path);
+        newPreviews.push(URL.createObjectURL(file));
       }
-      setUploadedUrls((prev) => (multiUpload ? [...prev, ...urls] : urls));
-      toast.success(`${urls.length} photo${urls.length > 1 ? "s" : ""} uploaded!`);
+      setUploadedPaths((prev) => (multiUpload ? [...prev, ...newPaths] : newPaths));
+      setPreviews((prev) => (multiUpload ? [...prev, ...newPreviews] : newPreviews));
+      toast.success(`${newPaths.length} photo${newPaths.length > 1 ? "s" : ""} uploaded!`);
     } catch (e: any) {
       toast.error(e.message ?? "Upload failed");
     } finally {
@@ -106,11 +106,12 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
   }
 
   function removePhoto(idx: number) {
-    setUploadedUrls((prev) => prev.filter((_, i) => i !== idx));
+    setUploadedPaths((prev) => prev.filter((_, i) => i !== idx));
+    setPreviews((prev) => prev.filter((_, i) => i !== idx));
   }
 
   function handleAdd() {
-    if (requiresUpload && uploadedUrls.length === 0) {
+    if (requiresUpload && uploadedPaths.length === 0) {
       toast.error("Please upload a photo first");
       return;
     }
@@ -122,8 +123,8 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
     if (addons.length) customization.addons = addons;
     if (note) customization.note = note;
     if (engraving) customization.engraving = engraving;
-    if (uploadedUrls.length > 1) customization.uploaded_photos = uploadedUrls;
-    else if (uploadedUrls.length === 1) customization.uploaded_photo = uploadedUrls[0];
+    if (uploadedPaths.length > 1) customization.uploaded_photos = uploadedPaths;
+    else if (uploadedPaths.length === 1) customization.uploaded_photo = uploadedPaths[0];
 
     add({
       productId: product.id,
@@ -132,7 +133,7 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
       unitPrice,
       quantity,
       customization,
-      uploadedImagePath: uploadedUrls[0] ?? undefined,
+      uploadedImagePath: uploadedPaths[0] ?? undefined,
       previewImage: design?.sample_image ?? color?.sample_image ?? theme?.sample_image ?? product.sample_image_url ?? undefined,
     });
     toast.success("Added to cart!");
@@ -146,13 +147,13 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
         {isFrameLike && design ? (
           <div className="relative w-56 h-56">
             <img src={design.sample_image} alt={design.name} className="absolute inset-0 w-full h-full object-cover rounded-lg" />
-            {uploadedUrls[0] && (
-              <img src={uploadedUrls[0]} alt="Your upload" className="absolute inset-6 w-44 h-44 object-cover rounded shadow-lg" />
+            {previews[0] && (
+              <img src={previews[0]} alt="Your upload" className="absolute inset-6 w-44 h-44 object-cover rounded shadow-lg" />
             )}
           </div>
         ) : (
           <img
-            src={uploadedUrls[0] ?? color?.sample_image ?? theme?.sample_image ?? product.sample_image_url ?? ""}
+            src={previews[0] ?? color?.sample_image ?? theme?.sample_image ?? product.sample_image_url ?? ""}
             alt="Preview"
             className="max-h-48 rounded-xl object-cover"
           />

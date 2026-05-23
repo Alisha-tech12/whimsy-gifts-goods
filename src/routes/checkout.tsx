@@ -123,7 +123,7 @@ function Checkout() {
             <span>Total</span>
             <span>${total().toFixed(2)}</span>
           </div>
-          <Button onClick={placeOrder} disabled={submitting} className="btn-gold w-full mt-5">
+          <Button onClick={placeOrderHandler} disabled={submitting} className="btn-gold w-full mt-5">
             {submitting ? "Placing…" : "Place Order"}
           </Button>
         </div>

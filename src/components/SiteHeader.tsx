@@ -17,6 +17,7 @@ export function SiteHeader() {
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
           <Link to="/" className="hover:text-primary [&.active]:text-primary">Home</Link>
           <Link to="/shop" className="hover:text-primary [&.active]:text-primary">Shop</Link>
+          <Link to="/track-order" className="hover:text-primary [&.active]:text-primary">Track Order</Link>
           <Link to="/admin" className="hover:text-primary [&.active]:text-primary">Admin</Link>
         </nav>
         <button
@@ -53,8 +54,9 @@ export function SiteFooter() {
           <p className="text-muted-foreground">+1 (555) 010-2024</p>
         </div>
         <div>
-          <div className="font-semibold mb-2">Follow</div>
-          <p className="text-muted-foreground">Instagram · Pinterest · TikTok</p>
+          <div className="font-semibold mb-2">Help</div>
+          <p><Link to="/track-order" className="text-muted-foreground hover:text-primary">Track your order</Link></p>
+          <p className="text-muted-foreground mt-1">Instagram · Pinterest · TikTok</p>
         </div>
       </div>
       <div className="text-center text-xs text-muted-foreground mt-8">

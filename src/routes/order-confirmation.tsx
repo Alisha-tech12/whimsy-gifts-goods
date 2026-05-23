@@ -122,8 +122,9 @@ function OrderConfirmation() {
         </div>
       </div>
 
-      <div className="flex gap-3 justify-center mt-8">
-        <Link to="/shop" className="btn-gold">Keep shopping</Link>
+      <div className="flex gap-3 justify-center mt-8 flex-wrap">
+        <Link to="/track-order" className="btn-gold">Track this order</Link>
+        <Link to="/shop" className="px-5 py-2 rounded-full bg-accent hover:bg-accent/70 font-medium">Keep shopping</Link>
         <Link to="/" className="px-5 py-2 rounded-full bg-muted hover:bg-muted/70 font-medium">Home</Link>
       </div>
     </div>

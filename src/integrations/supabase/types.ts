@@ -75,6 +75,7 @@ export type Database = {
           shipping_address: string | null
           status: string
           total_amount: number
+          tracking_number: string | null
           updated_at: string
           user_email: string
         }
@@ -87,6 +88,7 @@ export type Database = {
           shipping_address?: string | null
           status?: string
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string
           user_email: string
         }
@@ -99,6 +101,7 @@ export type Database = {
           shipping_address?: string | null
           status?: string
           total_amount?: number
+          tracking_number?: string | null
           updated_at?: string
           user_email?: string
         }
@@ -175,6 +178,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      lookup_order: {
+        Args: { p_email: string; p_order_id: string }
+        Returns: Json
       }
     }
     Enums: {

@@ -36,6 +36,20 @@ export function CustomizerDialog({
   );
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // strip data:...;base64, prefix
+      const comma = result.indexOf(",");
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function CustomizerBody({ product, onDone }: { product: Product; onDone: () => void }) {
   const opts = product.custom_options ?? {};
   const isFrameLike = !!opts.designs;
@@ -277,9 +291,9 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
             <span className="text-sm text-muted-foreground">
               {uploading
                 ? "Uploading…"
-                : uploadedUrls.length > 0
+                : uploadedPaths.length > 0
                 ? multiUpload
-                  ? `${uploadedUrls.length} / ${maxUploads} uploaded · click to add more`
+                  ? `${uploadedPaths.length} / ${maxUploads} uploaded · click to add more`
                   : "Photo uploaded ✓ (click to replace)"
                 : multiUpload
                 ? "Click to upload photos (JPG/PNG, select multiple)"
@@ -296,10 +310,10 @@ function CustomizerBody({ product, onDone }: { product: Product; onDone: () => v
               }}
             />
           </label>
-          {uploadedUrls.length > 0 && (
+          {previews.length > 0 && (
             <div className="grid grid-cols-4 md:grid-cols-6 gap-2 mt-3">
-              {uploadedUrls.map((u, i) => (
-                <div key={u} className="relative group">
+              {previews.map((u: string, i: number) => (
+                <div key={i} className="relative group">
                   <img src={u} alt={`upload-${i}`} className="w-full h-16 object-cover rounded-md border border-border" />
                   <button
                     type="button"

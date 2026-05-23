@@ -156,9 +156,6 @@ export const lookupOrder = createServerFn({ method: "POST" })
 export const adminListOrders = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: isAdmin, error: roleErr } = await supabaseAdmin.rpc as any; // not used
-    void roleErr;
-    // Verify admin via private.has_role
     const { data: roleRow } = await supabaseAdmin
       .from("user_roles")
       .select("role")

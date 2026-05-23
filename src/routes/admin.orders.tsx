@@ -1,34 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Download } from "lucide-react";
+import { adminListOrders, adminUpdateOrderStatus } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/admin/orders")({ component: AdminOrders });
 
-const STATUSES = ["Pending", "Printing", "Shipped", "Delivered"];
+const STATUSES = ["Pending", "Printing", "Shipped", "Delivered"] as const;
 
 function AdminOrders() {
   const qc = useQueryClient();
+  const listFn = useServerFn(adminListOrders);
+  const updateFn = useServerFn(adminUpdateOrderStatus);
+
   const { data: orders } = useQuery({
     queryKey: ["admin", "orders"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*, order_items(*)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as any[];
-    },
+    queryFn: () => listFn(),
   });
 
   async function updateStatus(id: string, status: string) {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (error) toast.error(error.message);
-    else {
+    try {
+      await updateFn({ data: { orderId: id, status: status as (typeof STATUSES)[number] } });
       toast.success("Status updated");
       qc.invalidateQueries({ queryKey: ["admin", "orders"] });
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to update");
     }
   }
 
@@ -47,7 +45,7 @@ function AdminOrders() {
             </tr>
           </thead>
           <tbody>
-            {orders?.map((o) => (
+            {orders?.map((o: any) => (
               <tr key={o.id} className="border-t border-border align-top">
                 <td className="p-3 font-mono text-xs">{o.id.slice(0, 8)}…</td>
                 <td className="p-3">
@@ -60,12 +58,15 @@ function AdminOrders() {
                     <div key={it.id} className="border-b border-border pb-2 last:border-0">
                       <div className="font-medium">{it.product_name} × {it.quantity}</div>
                       <div className="text-xs text-muted-foreground">
-                        {Object.entries(it.customization_details ?? {}).map(([k, v]) => (
-                          <div key={k}><span className="capitalize">{k}:</span> {Array.isArray(v) ? v.join(", ") : String(v)}</div>
-                        ))}
+                        {Object.entries(it.customization_details ?? {}).map(([k, v]) => {
+                          if (k === "uploaded_photo" || k === "uploaded_photos") return null;
+                          return (
+                            <div key={k}><span className="capitalize">{k}:</span> {Array.isArray(v) ? v.join(", ") : String(v)}</div>
+                          );
+                        })}
                       </div>
-                      {it.uploaded_image_path && (
-                        <a href={it.uploaded_image_path} target="_blank" rel="noreferrer" download className="inline-flex items-center gap-1 text-xs text-primary mt-1 underline">
+                      {it.uploaded_image_url && (
+                        <a href={it.uploaded_image_url} target="_blank" rel="noreferrer" download className="inline-flex items-center gap-1 text-xs text-primary mt-1 underline">
                           <Download className="w-3 h-3" /> Download photo
                         </a>
                       )}
